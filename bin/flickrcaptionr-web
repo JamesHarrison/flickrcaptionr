@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+$:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
+require 'flickrcaptionr'
+require 'trollop'
+opts = Trollop::options do
+  version "flickrcaptionr #{Flickrcaptionr::VERSION} (c) James Harrison"
+  banner <<-EOS
+flickrcaptionr is a tool to retrieve images from Flickr and many popular OEmbed-enabled web services.
+
+This is the web service, and is typically run thusly:
+
+  flickrcaptionr-web -o /some/path/to/store/images
+
+The -o parameter is only needed on first run and may be omitted subsequently. 
+
+"Persistent" configuration options are stored in a YAML file, by default at ~/.flickrcaptionr.yml. 
+This file is common across all flickrcaptionr services. Passing options to this tool, with or without a URL to retrieve, will generate this file for you.
+
+For instance:
+
+  flickrcaptionr-web -f 21k41poj52oi5j3oj522oj5i3
+
+will set the Flickr API key used by this client for future operations.
+
+Usage:
+  flickrcaptionr-web [options]
+
+Options:
+EOS
+  opt :config_path, "Configuration file path", type: String, default: '~/.flickrcaptionr.yml'
+  opt :output_path, "File output path (default is to output to current working directory)", type: String
+  opt :flickr_api_key, "Flickr API key (not needed if you don't want to use flickr)", type: String
+end
+config_path = opts[:config_path]
+c = Flickrcaptionr::Config.new(config_path, {:output_path => opts[:output_path], :flickr_api_key=>opts[:flickr_api_key]})
+
+Flickrcaptionr::App.run!

@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+$:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
+require 'flickrcaptionr'
+require 'trollop'
+opts = Trollop::options do
+  version "flickrcaptionr #{Flickrcaptionr::VERSION} (c) James Harrison"
+  banner <<-EOS
+flickrcaptionr is a tool to retrieve images from Flickr and many popular OEmbed-enabled web services.
+
+This is the cli tool, for command line operation.
+
+"Persistent" configuration options are stored in a YAML file, by default at ~/.flickrcaptionr.yml. This file is common across all flickrcaptionr services. Passing options to this tool, with or without a URL to retrieve, will generate this file for you.
+
+For instance:
+
+  flickrcaptionr-cli -f 21k41poj52oi5j3oj522oj5i3
+
+will set the Flickr API key used by this client for future operations.
+
+Operation-specific options like resize width and height, overlay text settings, etc are not persisted in this manner
+
+Usage:
+  flickrcaptionr-cli [options] url
+
+Options:
+EOS
+  opt :config_path, "Configuration file path", type: String, default: '~/.flickrcaptionr.yml'
+  opt :output_path, "File output path (default is to output to current working directory)", type: String
+  opt :flickr_api_key, "Flickr API key (not needed if you don't want to use flickr)", type: String
+  opt :resize, "Resize images to this size (as WxH, ie 300x400)", type: String
+  opt :caption, "Add a caption to the image", type: String
+  opt :caption_font_path, "Select font to use for the caption", type: String
+  opt :caption_font_size, "Select font size to use for the caption", type: Integer
+  opt :caption_font_stroke, "Select font stroke width to use for the caption", type: Integer
+end
+
+url = ARGV.shift
+
+config_path = opts[:config_path]
+c = Flickrcaptionr::Config.new(config_path, {:output_path => opts[:output_path], :flickr_api_key=>opts[:flickr_api_key]})
+if url and url.size > 0
+  f = Flickrcaptionr::Fetcher.new
+  p = Flickrcaptionr::Processor.new
+  caption_opts = {}
+  if opts[:caption_given]
+    caption_opts[:font_path] = opts[:caption_font_path] if opts[:caption_font_path_given]
+    caption_opts[:font_size] = opts[:caption_font_size] if opts[:caption_font_size_given]
+    caption_opts[:font_stroke] = opts[:caption_font_stroke] if opts[:caption_font_stroke_given]
+  end
+  file = f.fetch(url)
+  if opts[:resize_given]
+    rd = opts[:resize].split("x")
+    if rd.size == 2
+      resized_path = p.resize!(file, rd[0].to_i, rd[1].to_i)
+      p.add_text!(resized_path, opts[:caption], caption_opts) if opts[:caption_given]
+    else
+      puts "Resize string not understood, format is widthxheight, like 300x400"
+    end
+  else
+    p.add_text!(file, opts[:caption], caption_opts) if opts[:caption_given]
+  end
+else
+  puts "No URL provided, not fetching anything. flickrcaptionr-cli -h for usage."
+end

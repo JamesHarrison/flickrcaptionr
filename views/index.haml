@@ -1,0 +1,67 @@
+!!!
+%html{lang: 'en'}
+  %head
+    %title
+    %link{rel: 'stylesheet', href: '/bootstrap.min.css'}
+  %body
+    .container
+      .row
+        .span12.well
+          %h1
+            flickrcaptionr
+            %small Putting words in your reasonably-sized images since 2012
+          - if params['error']
+            .alert
+              %h3 Uh-oh, something went wrong
+              = params['error']
+          %form.form-horizontal{action: '/', method: 'post'}
+            %fieldset
+              %legend
+                Where do we get your image?
+              .control-group
+                %label.control-label Image Source
+                .controls
+                  %input.input-xlarge{type: 'text', name: 'image_url'}
+                  %p.help-block
+                    This can be a URL to a Flickr page, a Flickr image ID (just the number), or a link to an image directly. 
+                    %br
+                    OEmbed services like Instagram and Tumblr pages are also supported.
+            %fieldset
+              %legend
+                Do you want that small, tiny or normal-sized?
+              .control-group
+                %label.control-label Image Width
+                .controls
+                  %input{type: 'text', name: 'image_width', value: params[:image_width] ? params[:image_width] : 300}
+              .control-group
+                %label.control-label Image Height
+                .controls
+                  %input{type: 'text', name: 'image_height', value: params[:image_height] ? params[:image_height] : 400}
+                  %p.help-block
+                    We can resize your image to whichever size you desire. The image will be cropped to fit these dimensions if required.
+            %fieldset
+              %legend
+                Add a caption to your image
+                %small Don't forget, LOLcat haz own languages
+              .control-group
+                %label.control-label Caption Text
+                .controls
+                  %input.input-xlarge{type: 'text', name: 'caption_text', value: params[:caption_text] ? params[:caption_text] : ''}
+              .control-group
+                %label.control-label Font Size
+                .controls
+                  %input.input-xlarge{type: 'text', name: 'caption_font_size', value: params[:caption_font_size] ? params[:caption_font_size] : 36}
+              .control-group
+                %label.control-label Font Stroke Weight
+                .controls
+                  %input.input-xlarge{type: 'text', name: 'caption_font_stroke', value: params[:caption_font_stroke] ? params[:caption_font_stroke] : 2}
+            .form-actions
+              %button.btn.btn-large.btn-primary{type:'submit'} Generate my image!
+
+        %p
+          You can also use the GET API as follows:
+          %code
+            \/get/flickr-photo-id-or-encoded-url/width/height/caption-text
+        %p
+          For instance,
+          %a{href: "/get/6792442709/300/400/I%20has%20a%20LED"} something like this.
