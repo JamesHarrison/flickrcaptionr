@@ -32,11 +32,11 @@
               .control-group
                 %label.control-label Image Width
                 .controls
-                  %input{type: 'text', name: 'image_width', value: params[:image_width] ? params[:image_width] : 300}
+                  %input{type: 'text', name: 'image_width', value: params[:image_width] ? params[:image_width] : 400}
               .control-group
                 %label.control-label Image Height
                 .controls
-                  %input{type: 'text', name: 'image_height', value: params[:image_height] ? params[:image_height] : 400}
+                  %input{type: 'text', name: 'image_height', value: params[:image_height] ? params[:image_height] : 300}
                   %p.help-block
                     We can resize your image to whichever size you desire. The image will be cropped to fit these dimensions if required.
             %fieldset
@@ -60,8 +60,19 @@
 
         %p
           You can also use the GET API as follows:
-          %code
-            \/get/flickr-photo-id-or-encoded-url/width/height/caption-text
+          %pre /get/flickr-photo-id-or-encoded-url/width/height/caption-text
         %p
           For instance,
-          %a{href: "/get/6792442709/300/400/I%20has%20a%20LED"} something like this.
+          %a{href: "/get/6792442709/400/300/I%20has%20a%20LED"} something like this.
+        %p
+          You can omit values to disable functionality, for instance
+          %code /get/flickr-photo-id-or-encoded-url/width/height
+          will not add a caption,
+          %code /get/flickr-photo-id-or-encoded-url/caption
+          will not resize the image and
+          %code /get/flickr-photo-id-or-encoded-url
+          will just provide the unresized image.
+        %p
+          You can add a
+          %code ?redirect=true
+          flag if you prefer to be redirected to the image path rather than be served the image directly.

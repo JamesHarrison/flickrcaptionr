@@ -3,7 +3,6 @@ require 'dimensions'
 class Flickrcaptionr::Processor
   def initialize
     Flickrcaptionr::Processor.has_dependencies?
-
   end
   # Resize an image, fitting the space provided as best as possible with a centre-weighted crop
   def resize!(path, width, height)
@@ -29,7 +28,7 @@ class Flickrcaptionr::Processor
       puts "Already added text to this image, not doing it again"
     else
       puts "Adding text '#{text}' to #{path}"
-      `convert -background none -fill white -font "#{opts[:font_path] ? opts[:font_path] : (File.join(File.dirname(__FILE__), '..', '..', 'fonts', 'Coda-Heavy.ttf' ))}" -stroke black -strokewidth #{opts[:font_stroke] ? opts[:font_stroke].to_s : 2.to_s} -pointsize #{opts[:font_size] ? opts[:font_size].to_s : 36.to_s} -size #{((Dimensions.width(path)-10).to_s)}  -gravity Center caption:'#{text.gsub(/[^A-Za-z0-9 \-"\.,]/,"")}' caption-tmp.png`
+      `convert -background none -fill white -font "#{opts[:font_path] ? opts[:font_path] : (File.join(File.dirname(__FILE__), '..', '..', 'fonts', 'Coda-Heavy.ttf' ))}" -stroke black -strokewidth #{opts[:font_stroke] ? opts[:font_stroke].to_s : 2.to_s} -pointsize #{opts[:font_size] ? opts[:font_size].to_s : 36.to_s} -size #{((Dimensions.width(path)-10).to_s)}  -gravity Center caption:'#{text.gsub(/[^A-Za-z0-9 \-"\.,\?\!]/,"")}' caption-tmp.png`
       `composite caption-tmp.png #{path} -compose atop -gravity South #{out_filename}`
       `rm -rf caption-tmp.png`
     end

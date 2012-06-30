@@ -13,66 +13,25 @@ class Flickrcaptionr::App < Sinatra::Base
   get '/' do
     haml :index
   end
+  get '/get/:image_url' do
+    handle_image_generation(params)
+    haml :index
+  end
+  get '/get/:image_url/:caption_text' do
+    handle_image_generation(params)
+    haml :index
+  end
+  get '/get/:image_url/:image_width/:image_height' do
+    handle_image_generation(params)
+    haml :index
+  end
   get '/get/:image_url/:image_width/:image_height/:caption_text' do
-    @f ||= Flickrcaptionr::Fetcher.new
-    @p ||= Flickrcaptionr::Processor.new
-    # {"image_url"=>"https://secure.flickr.com/photos/must_love_cartoons/7474524298/",
-    #  "image_width"=>"300", "image_height"=>"400", 
-    #  "caption_text"=>"You have angered the developer", "caption_font_size"=>"36", "caption_font_stroke"=>"2"}
-
-    if params['image_url'] and params['image_url'].size > 0
-      caption_opts = {}
-      if params['caption_text'] and params['caption_text'] != ''
-        caption_opts[:font_size] = params['caption_font_size'].to_i if params['caption_font_size'] and params['caption_font_size'].size > 0
-        caption_opts[:font_stroke] = params['caption_font_stroke'].to_i if params['caption_font_stroke'] and params['caption_font_stroke'].size > 0
-      end
-      begin
-        file = @f.fetch(params['image_url'])
-        w = params['image_width'].to_i
-        h = params['image_height'].to_i
-        if w > 0 and h > 0
-          file = @p.resize!(file, w, h)
-        end
-        file = @p.add_text!(file, params['caption_text'], caption_opts) if params['caption_text'] and params['caption_text'] != ''
-        send_file file
-      rescue Exception => e
-        params['error'] = e.message
-      end
-    else
-      params['error'] = "You didn't supply a URL. Not sure what you expect me to do without that."
-    end
+    handle_image_generation(params)
     haml :index
   end
   post '/' do
-    @f ||= Flickrcaptionr::Fetcher.new
-    @p ||= Flickrcaptionr::Processor.new
-    # {"image_url"=>"https://secure.flickr.com/photos/must_love_cartoons/7474524298/",
-    #  "image_width"=>"300", "image_height"=>"400", 
-    #  "caption_text"=>"You have angered the developer", "caption_font_size"=>"36", "caption_font_stroke"=>"2"}
-
-    if params['image_url'] and params['image_url'].size > 0
-      
-      caption_opts = {}
-      if params['caption_text'] and params['caption_text'] != ''
-        caption_opts[:font_size] = params['caption_font_size'].to_i if params['caption_font_size'] and params['caption_font_size'].size > 0
-        caption_opts[:font_stroke] = params['caption_font_stroke'].to_i if params['caption_font_stroke'] and params['caption_font_stroke'].size > 0
-      end
-      begin
-        file = @f.fetch(params['image_url'])
-        w = params['image_width'].to_i
-        h = params['image_height'].to_i
-        if w > 0 and h > 0
-          file = @p.resize!(file, w, h)
-        end
-        file = @p.add_text!(file, params['caption_text'], caption_opts) if params['caption_text'] and params['caption_text'] != ''
-        redirect "/image/#{File.basename(file)}"
-      rescue Exception => e
-        params['error'] = e.message
-      end
-      
-    else
-      params['error'] = "You didn't supply a URL. Not sure what you expect me to do without that."
-    end
+    params['redirect'] = 'true'
+    handle_image_generation(params)
     haml :index
   end
   get '/image/:filename' do
@@ -85,6 +44,40 @@ class Flickrcaptionr::App < Sinatra::Base
     get "/#{public_file}" do
       content_type(public_file_type)
       ::File.open(::File.expand_path("../../../pub/#{public_file}", __FILE__)).read
+    end
+  end
+
+  def handle_image_generation(params)
+    @f ||= Flickrcaptionr::Fetcher.new
+    @p ||= Flickrcaptionr::Processor.new
+    # {"image_url"=>"https://secure.flickr.com/photos/must_love_cartoons/7474524298/",
+    #  "image_width"=>"300", "image_height"=>"400", 
+    #  "caption_text"=>"You have angered the developer", "caption_font_size"=>"36", "caption_font_stroke"=>"2"}
+
+    if params['image_url'] and params['image_url'].size > 0
+      caption_opts = {}
+      if params['caption_text'] and params['caption_text'] != ''
+        caption_opts[:font_size] = params['caption_font_size'].to_i if params['caption_font_size'] and params['caption_font_size'].size > 0
+        caption_opts[:font_stroke] = params['caption_font_stroke'].to_i if params['caption_font_stroke'] and params['caption_font_stroke'].size > 0
+      end
+      begin
+        file = @f.fetch(params['image_url'])
+        w = params['image_width'].to_i
+        h = params['image_height'].to_i
+        if w > 0 and h > 0
+          file = @p.resize!(file, w, h)
+        end
+        file = @p.add_text!(file, params['caption_text'], caption_opts) if params['caption_text'] and params['caption_text'] != ''
+        if params['redirect'] and params['redirect'] == 'true'
+          redirect "/image/#{File.basename(file)}"
+        else
+          send_file file
+        end
+      rescue Exception => e
+        params['error'] = e.message
+      end
+    else
+      params['error'] = "You didn't supply a URL. Not sure what you expect me to do without that."
     end
   end
 end
