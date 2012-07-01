@@ -5,7 +5,7 @@ require 'json'
 class Flickrcaptionr::Fetchers::Flickr < Flickrcaptionr::Fetchers::Base
   def initialize
     @@api_key = Flickrcaptionr::Config.flickr_api_key
-    @@flickr_regexes = [/(?!www\.flickr.com|secure\.flickr.com|flickr.com).+\/(\d+)\/.*/,/^(\d+)$/]
+    @@flickr_regexes = [/(?:www\.flickr.com|secure\.flickr.com|flickr.com)+\/.+\/(\d+)\/.*$/,/^(\d+)$/]
   end
   def fetch(url)
     unless @@api_key

@@ -9,11 +9,8 @@ class Flickrcaptionr::Fetchers::OEmbed < Flickrcaptionr::Fetchers::Base
     resp = OEmbed::Providers.get(url)
     # Now figure out what the heck in our oembed response is actually the image we're seeking
     if resp
-      for key in %w(url thumbnail_url)
-        if resp[key] and resp[key] != nil
-          return resp[key]
-        end
-      end
+      return resp.url if (resp.url rescue nil)
+      return resp.thumbnail_url if (resp.thumbnail_url rescue nil)
     end
     # If we're here, we either didn't retrieve any suitable image URL, or our provider broke
     raise Flickrcaptionr::RequestNotFetchableException, "Could not retrieve #{url}"

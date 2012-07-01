@@ -13,7 +13,10 @@ class Flickrcaptionr::Processor
       puts "Not resizing, #{out_filename} already exists"
     else
       puts "Resizing #{path} to #{width.to_i.to_s}x#{height.to_i.to_s} at #{out_filename}"
-      res = `convert #{path} -resize #{width.to_i.to_s}x#{height.to_i.to_s}^ -gravity center -extent #{width.to_i.to_s}x#{height.to_i.to_s} #{out_filename}`
+      res = `convert '#{path}' -resize #{width.to_i.to_s}x#{height.to_i.to_s}^ -gravity center -extent #{width.to_i.to_s}x#{height.to_i.to_s} '#{out_filename}'`
+      if !File.exists?(out_filename)
+        raise Flickrcaptionr::ResizeFailedException, "Failed to write output file, check your ImageMagick installation and output path setting"
+      end
     end
     return out_filename
   end
@@ -27,10 +30,18 @@ class Flickrcaptionr::Processor
     if File.exists?(out_filename)
       puts "Already added text to this image, not doing it again"
     else
-      puts "Adding text '#{text}' to #{path}"
-      `convert -background none -fill white -font "#{opts[:font_path] ? opts[:font_path] : (File.join(File.dirname(__FILE__), '..', '..', 'fonts', 'Coda-Heavy.ttf' ))}" -stroke black -strokewidth #{opts[:font_stroke] ? opts[:font_stroke].to_s : 2.to_s} -pointsize #{opts[:font_size] ? opts[:font_size].to_s : 36.to_s} -size #{((Dimensions.width(path)-10).to_s)}  -gravity Center caption:'#{text.gsub(/[^A-Za-z0-9 \-"\.,\?\!]/,"")}' caption-tmp.png`
-      `composite caption-tmp.png #{path} -compose atop -gravity South #{out_filename}`
-      `rm -rf caption-tmp.png`
+      escaped_text = text.gsub('"',"''").gsub(/[^A-Za-z0-9 '\-\.,\?\!]/,"")
+      puts "Adding text '#{escaped_text}' to #{path} (original text '#{text}')"
+
+      `convert -background none -fill white -font "#{opts[:font_path] ? opts[:font_path] : (File.join(File.dirname(__FILE__), '..', '..', 'fonts', 'Coda-Heavy.ttf' ))}" -stroke black -strokewidth #{opts[:font_stroke] ? opts[:font_stroke].to_s : 2.to_s} -pointsize #{opts[:font_size] ? opts[:font_size].to_s : 36.to_s} -size #{((Dimensions.width(path)-10).to_s)}  -gravity Center caption:"#{escaped_text}" /tmp/caption-tmp.png`
+      if !File.exists?('/tmp/caption-tmp.png')
+        raise Flickrcaptionr::TextGenerationFailedException, "Couldn't generate text to overlay! Check your ImageMagick installation and that /tmp is writeable."
+      end
+      `composite /tmp/caption-tmp.png '#{path}' -compose atop -gravity South '#{out_filename}'`
+      if !File.exists?(out_filename)
+        raise Flickrcaptionr::CompositionFailedException, "Failed to write output composite file, check your ImageMagick installation and output path setting"
+      end
+      `rm -rf /tmp/caption-tmp.png`
     end
     return out_filename
   end

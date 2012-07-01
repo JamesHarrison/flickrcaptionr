@@ -21,4 +21,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency("sinatra", ">= 1.3.2")
   gem.add_dependency("haml", ">= 3.1.6")
   gem.add_dependency("thin", ">= 1.3.1")
+  gem.add_development_dependency("rspec", ">= 2.10.0")
 end

@@ -1,0 +1,3 @@
+--color
+--format html
+--out spec/reports/index.html
